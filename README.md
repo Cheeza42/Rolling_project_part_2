@@ -3,34 +3,26 @@ This is the second part of the rolling project
 
 # AWS Flask Viewer
 
-This project is a simple **Flask web application** packaged in a Docker container.  
-It connects to AWS using boto3 and displays basic information about your AWS resources, including:
+This project is a simple Flask web application packaged in a Docker container.  
+It uses boto3 to connect to AWS and displays the following resources in an HTML page:
 - EC2 instances
 - VPCs
 - Load Balancers
-- AMIs (owned by your account)
+- AMIs
 
-The application runs on **port 5001**.
-
----
+The application runs on port 5001.
 
 ## Prerequisites
-- Docker installed locally.
-- An AWS IAM user with:
-  - **Access Key ID**
-  - **Secret Access Key**
-- The IAM user should have permissions to list EC2, VPC, and ELB resources (e.g., `AdministratorAccess` for testing).
-
----
+- Docker installed
+- AWS IAM user with:
+  - Access Key ID
+  - Secret Access Key
+- Permissions to list EC2, VPC, ELB, and AMI resources (for testing, AdministratorAccess is sufficient)
 
 ## Build the Docker Image
-Clone the repository and build the image:
-
 docker build -t aws-flask .
-Run the Container
-Run the container while passing your AWS credentials as environment variables:
 
-
+## Run the Container
 docker run -d --name aws-flask \
   -p 5001:5001 \
   -e AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID \
@@ -39,14 +31,12 @@ docker run -d --name aws-flask \
   aws-flask
 
 ## Access the Application
-## Open your browser and go to:
+Open your browser at:
 
 http://localhost:5001/
 
-You should see an HTML page with tables listing your AWS resources.
+You will see an HTML page displaying your AWS resources.
 
-To stop the Container
-When finished, stop and remove the container:
-
+## Stop the Container
 docker stop aws-flask
 docker rm aws-flask
