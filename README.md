@@ -30,7 +30,7 @@ docker run -d --name aws-flask \
   -p 5001:5001 \
   -e AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY \
-  -e AWS_DEFAULT_REGION=us-east-1 \
+  -e AWS_DEFAULT_REGION=eu-west-1 \
   aws-flask
 ```
 
