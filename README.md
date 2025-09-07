@@ -45,7 +45,7 @@ You will see an HTML page displaying your AWS resources.
 
 ## Stop the Container
 ```bash
-docker stop aws-flask
-docker rm aws-flask
+docker stop project-flask
+docker rm project-flask
 ```
 
