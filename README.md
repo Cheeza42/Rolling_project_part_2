@@ -21,12 +21,12 @@ The application runs on **port 5001**.
 
 ## Build the Docker Image
 ```bash
-docker build -t aws-flask .
+docker build -t project-flask .
 ```
 
 ## Run the Container
 ```bash
-docker run -d --name aws-flask \
+docker run -d --name project-flask \
   -p 5001:5001 \
   -e AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY \
