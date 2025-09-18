@@ -60,7 +60,7 @@ docker rm project-flask
 
 ## ⎈ Deploy on Kubernetes with Helm
 
-This repo also includes a Helm chart (chart/helm_project) to deploy the app to Kubernetes.
+This repo also includes a Helm chart (chart/helm_chart_projct) to deploy the app to Kubernetes.
 
 ## 📋 Prerequisites
 
@@ -72,7 +72,7 @@ NGINX Ingress Controller (required because ingress.enabled: true in values.yaml)
 
 ## 🚀 Install
 ```bash
-helm install aws-viewer ./chart/helm_project
+helm install aws-viewer ./chart/helm_chart_projct
 kubectl get pods,svc,ingress
 ```
 
