@@ -103,7 +103,7 @@ You can forward locally:
 ```bash
 kubectl port-forward svc/aws-viewer 8080:80
 ```
- Then open http://localhost:8080/
+ # Then open http://localhost:8080/
 
 ## 🔄 Upgrade / Uninstall
 ```bash
