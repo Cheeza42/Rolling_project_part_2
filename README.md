@@ -29,27 +29,31 @@ The application runs on **port 5001**.
 ### 🛠️ Build Locally
 ```bash
 docker build -t project-flask .
-📦 Pull from Docker Hub
-
+```
+## 📦 Pull from Docker Hub
+```bash
 docker pull cheeza42/dockerizing-project:v1
-# View on Docker Hub: https://hub.docker.com/r/cheeza42/dockerizing-project
+```
+**View on Docker Hub:**
+ https://hub.docker.com/r/cheeza42/dockerizing-project
 
-▶️ Run the Container on AWS
- 
- 
+
+## ▶️ Run the Container on AWS
+ ```bash
 docker run -d --name project-flask \
   -p 5001:5001 \
   -e AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=YOUR_SECRET_ACCESS_KEY \
   -e AWS_DEFAULT_REGION=eu-west-1 \
   cheeza42/dockerizing-project:v1
-
-🌍 Access the Application
-
+ ```
+## 🌍 Access the Application
 Open your browser at:
 👉 http://localhost:5001/
 
-🛑 Stop and Remove the Container
 
+## 🛑 Stop and Remove the Container
+```bash
 docker stop project-flask
 docker rm project-flask
+```
