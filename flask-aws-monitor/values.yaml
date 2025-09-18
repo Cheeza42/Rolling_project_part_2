@@ -1,0 +1,19 @@
+deployment:
+  replicaset: 2
+  imagename: cheeza42/dockerizing-project:latest
+  imagetag: v1
+
+service:
+  #note: the is type ClusterIP
+  port: 80
+  targetport: 5001
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  host: awsviewer.com   
+
+aws:
+  accessKeyId: AWS_ACCESS_KEY_ID
+  secretAccessKey: AWS_SECRET_ACCESS_KEY
+  region: us-east-1
