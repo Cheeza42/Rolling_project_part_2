@@ -103,11 +103,11 @@ You can forward locally:
 ```bash
 kubectl port-forward svc/aws-viewer 8080:80
 ```
-# Then open http://localhost:8080/
+ Then open http://localhost:8080/
 
 ## 🔄 Upgrade / Uninstall
 ```bash
-helm upgrade aws-viewer ./chart/helm_project -f chart/helm_project/values.yaml
+helm upgrade aws-viewer ./chart/helm_chart_projct -f chart/helm_chart_projct/values.yaml
 helm uninstall aws-viewer
 ```
 ## 📑 Chart details
