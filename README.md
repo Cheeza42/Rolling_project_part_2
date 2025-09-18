@@ -110,7 +110,7 @@ kubectl port-forward svc/aws-viewer 8080:80
 helm upgrade aws-viewer ./chart/helm_project -f chart/helm_project/values.yaml
 helm uninstall aws-viewer
 ```
-📑 Chart details
+## 📑 Chart details
 
 Replicas: 2
 
