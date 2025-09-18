@@ -5,9 +5,9 @@ metadata:
 spec:
   selector:
     {{- include "app.labels" . | nindent 4 }}
-  type: {{- if .Values.ingress.enabled }} ClusterIP {{- else }} LoadBalancer {{- end }}
-  ports:  #from values
-  ports:
+  type: {{- if .Values.ingress.enabled }} ClusterIP {{- else }} LoadBalancer {{- end }}  
+  
+  ports: #from values
   - name: http
     protocol: TCP
     port: {{ .Values.service.port }}

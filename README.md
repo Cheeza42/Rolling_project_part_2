@@ -57,3 +57,69 @@ Open your browser at:
 docker stop project-flask
 docker rm project-flask
 ```
+
+## ⎈ Deploy on Kubernetes with Helm
+
+This repo also includes a Helm chart (chart/helm_project) to deploy the app to Kubernetes.
+
+## 📋 Prerequisites
+
+Kubernetes cluster with kubectl configured
+
+Helm v3+
+
+NGINX Ingress Controller (required because ingress.enabled: true in values.yaml)
+
+## 🚀 Install
+```bash
+helm install aws-viewer ./chart/helm_project
+kubectl get pods,svc,ingress
+```
+
+## 🌐 Access the app
+Ingress (enabled)
+
+According to values.yaml:
+
+- ingress.enabled: true
+
+- ingress.ingressClassName: nginx
+
+- ingress.host: awsviewer.com
+
+So the app will be available at:
+
+http://awsviewer.com/
+
+
+## ⚠️ DNS for awsviewer.com must resolve to your Ingress controller’s IP.
+For local testing (e.g., minikube), add an entry in /etc/hosts:
+<INGRESS-IP> awsviewer.com
+
+## Fallback: ClusterIP (port-forward)
+
+If Ingress is not working, the Service is ClusterIP on port 80 → targetPort 5001.
+You can forward locally:
+```bash
+kubectl port-forward svc/aws-viewer 8080:80
+```
+# Then open http://localhost:8080/
+
+## 🔄 Upgrade / Uninstall
+```bash
+helm upgrade aws-viewer ./chart/helm_project -f chart/helm_project/values.yaml
+helm uninstall aws-viewer
+```
+📑 Chart details
+
+Replicas: 2
+
+Image: cheeza42/dockerizing-project:v1
+
+Service: ClusterIP (port 80 → container port 5001)
+
+Ingress: NGINX, host awsviewer.com
+
+AWS credentials: passed as environment variables
+
+✅ Recommendation: In production, store AWS credentials in a Kubernetes Secret and reference them from the Deployment.
