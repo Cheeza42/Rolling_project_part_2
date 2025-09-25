@@ -1,7 +1,7 @@
 deployment:
   replicaset: 2
   imagename: cheeza42/dockerizing-project
-  imagetag: latest 
+  imagetag: v1
 
 service:
   #note: the is type ClusterIP
