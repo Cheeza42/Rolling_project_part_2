@@ -72,7 +72,7 @@ NGINX Ingress Controller (required because ingress.enabled: true in values.yaml)
 
 ## 🚀 Install
 ```bash
-helm install aws-viewer ./chart/helm_chart_projct
+helm install aws-viewer ./helm_chart_projct
 kubectl get pods,svc,ingress
 ```
 
@@ -107,7 +107,7 @@ kubectl port-forward svc/aws-viewer 8080:80
 
 ## 🔄 Upgrade / Uninstall
 ```bash
-helm upgrade aws-viewer ./chart/helm_chart_projct -f chart/helm_chart_projct/values.yaml
+helm upgrade aws-viewer ./helm_chart_projct -f helm_chart_projct/values.yaml
 helm uninstall aws-viewer
 ```
 ## 📑 Chart details
@@ -121,5 +121,11 @@ Service: ClusterIP (port 80 → container port 5001)
 Ingress: NGINX, host awsviewer.com
 
 AWS credentials: passed as environment variables
+
+Probes: readiness & liveness on /ready and /health  
+
+Resources: requests (100m CPU, 128Mi RAM), limits (500m CPU, 256Mi RAM) 
+
+Service labels: app: <Release.Name>  
 
 ✅ Recommendation: In production, store AWS credentials in a Kubernetes Secret and reference them from the Deployment.
