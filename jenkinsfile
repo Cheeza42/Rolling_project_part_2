@@ -111,6 +111,6 @@ pipeline {
   post {
     success { echo "Pipeline completed successfully. Image pushed: ${IMAGE_NAME}:${IMAGE_TAG}" }
     failure { echo 'Pipeline failed! Check logs for details.' }
-    always  { sh 'docker logout || true' }
+    always  { echo 'Cleanup done' }  // no sh here
   }
 }
