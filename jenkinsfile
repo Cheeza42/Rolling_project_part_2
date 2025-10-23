@@ -3,8 +3,8 @@ pipeline {
   options { timestamps(); ansiColor('xterm') }
 
   environment {
-    DOCKERHUB_USERNAME = credentials('Cheeza42-username')  // string credential: Docker Hub username
-    DOCKERHUB_PASSWORD = credentials('Cheeza42-password')  // string credential: Docker Hub password/token
+    DOCKERHUB_USERNAME = credentials('cheeza42-username')  // string credential: Docker Hub username
+    DOCKERHUB_PASSWORD = credentials('cheeza42-password')  // string credential: Docker Hub password/token
     IMAGE_NAME      = 'docker.io/cheeza42/dockerizing-project'
     DOCKERFILE_PATH = 'Rolling_project_part_2/dockerfile'
     BUILD_CONTEXT   = 'Rolling_project_part_2'
