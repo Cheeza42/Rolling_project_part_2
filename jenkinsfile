@@ -70,6 +70,10 @@ spec:
               printf '{"auths":{"https://index.docker.io/v1/":{"auth":"%s"}}}\n' "$AUTH" > /workspace/.docker/config.json
               wc -c /workspace/.docker/config.json
 
+              DF_REL="${DOCKERFILE_PATH#${BUILD_CONTEXT}/}"
+              [ "$DF_REL" = "$DOCKERFILE_PATH" ] && DF_REL="$DOCKERFILE_PATH"
+              test -f "${BUILD_CONTEXT}/${DF_REL}" || { echo "Dockerfile not found at ${BUILD_CONTEXT}/${DF_REL}"; ls -la "${BUILD_CONTEXT}"; exit 1; }
+
               echo "==> Kaniko build & push"
               /kaniko/executor \
                 --verbosity=debug \
