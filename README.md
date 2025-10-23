@@ -110,6 +110,37 @@ kubectl port-forward svc/aws-viewer 8080:80
 helm upgrade aws-viewer ./helm_chart_projct -f helm_chart_projct/values.yaml
 helm uninstall aws-viewer
 ```
+## ⚙️ CI/CD Automation with Jenkins & Kaniko
+
+This project integrates **Jenkins** and **Kaniko** to automate the entire build and push process of the Docker image to Docker Hub — without requiring Docker to run inside the Jenkins agent.  
+
+### 🧩 Pipeline Overview
+The Jenkins pipeline performs the following stages:
+
+1. **Clone Repository** – Pulls the latest code from GitHub.  
+2. **Compute Tag** – Generates a unique image tag based on date and commit SHA.  
+3. **Parallel Checks** –  
+   - *Linting:* Runs `flake8`, `hadolint`, and `shellcheck`.  
+   - *Security Scanning:* Runs `bandit` and `trivy`.  
+4. **Build & Push with Kaniko** –  
+   Uses the Kaniko executor container to build the Docker image from the `Dockerfile` and push it directly to Docker Hub.
+
+### ☸️ Environment
+The Jenkins pipeline runs inside a **Kubernetes Pod**, where:
+- The **Kaniko container** handles image building and pushing to Docker Hub.  
+- The **Jenkins agent container** manages pipeline orchestration and log output.
+
+### 🧱 Jenkinsfile Reference
+The complete pipeline implementation can be found in the project root under:  
+📄 **[`jenkinsfile`](./jenkinsfile)**  
+
+It defines all stages, environment variables, and credentials used for the automated CI/CD workflow.
+
+### 📦 Result
+Once the pipeline completes, the image is automatically pushed to Docker Hub under:  
+👉 **[`cheeza42/dockerizing-project`](https://hub.docker.com/r/cheeza42/dockerizing-project)**
+
+
 ## 📑 Chart details
 
 Replicas: 2
