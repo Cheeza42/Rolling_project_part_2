@@ -16,8 +16,8 @@ spec:
   }
 
   environment {
-    DOCKERHUB_USERNAME = credentials('Cheeza42-username')
-    DOCKERHUB_PASSWORD = credentials('Cheeza42-password')
+    DOCKERHUB_USERNAME = credentials('cheeza42-username')
+    DOCKERHUB_PASSWORD = credentials('cheeza42-password')
     IMAGE_NAME      = 'docker.io/cheeza42/dockerizing-project'
     DOCKERFILE_PATH = 'Rolling_project_part_2/dockerfile'
     BUILD_CONTEXT   = 'Rolling_project_part_2'
