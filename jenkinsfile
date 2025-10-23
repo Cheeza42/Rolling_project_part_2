@@ -67,7 +67,7 @@ spec:
               echo "==> Docker auth"
               mkdir -p /workspace/.docker
               AUTH=$(printf "%s" "${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD}" | base64 | tr -d '\\n')
-              printf '{"auths":{"https://index.docker.io/v1/":{"auth":"%s"}}}\n' "$AUTH" > /workspace/.docker/config.json
+              printf '{"auths":{"https://index.docker.io/v1/":{"auth":"%s"}}}\n' "$AUTH" > /kaniko/.docker/config.json
               wc -c /workspace/.docker/config.json
 
               DF_REL="${DOCKERFILE_PATH#${BUILD_CONTEXT}/}"
