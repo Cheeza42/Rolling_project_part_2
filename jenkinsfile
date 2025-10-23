@@ -29,18 +29,18 @@ spec:
         git branch: 'main', url: 'https://github.com/cheeza42/Rolling_project_part_2.git'
       }
     }
-
+    
     stage('Compute Tag') {
       steps {
         script {
-          def sha = sh(returnStdout: true, script: "git rev-parse --short HEAD").trim()
-          def ts  = sh(returnStdout: true, script: "date +%Y%m%d-%H%M%S").trim()
-          env.IMAGE_TAG = "${ts}-${sha}"
+          def ts = sh(returnStdout: true, script: "date +%Y%m%d-%H%M%S").trim()
+          env.IMAGE_TAG = "${ts}"
           echo "IMAGE_TAG=${env.IMAGE_TAG}"
         }
       }
     }
 
+    
     stage('Parallel Checks') {
       parallel {
         stage('Linting') {
