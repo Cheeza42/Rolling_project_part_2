@@ -73,7 +73,6 @@ spec:
               echo "==> Kaniko build & push"
               /kaniko/executor \
                 --verbosity=debug \
-                --docker-config=/workspace/.docker \
                 --context="${BUILD_CONTEXT}" \
                 --dockerfile="${DOCKERFILE_PATH}" \
                 --destination="${IMAGE_NAME}:${IMAGE_TAG}" \
