@@ -3,8 +3,8 @@ pipeline {
   options { timestamps(); ansiColor('xterm') }
 
   environment {
-    DOCKERHUB_USERNAME = credentials('Cheeza42')  // string credential: Docker Hub username
-    DOCKERHUB_PASSWORD = credentials('dockerhub-password')  // string credential: Docker Hub password/token
+    DOCKERHUB_USERNAME = credentials('Cheeza42-username')  // string credential: Docker Hub username
+    DOCKERHUB_PASSWORD = credentials('Cheeza42-password')  // string credential: Docker Hub password/token
     IMAGE_NAME      = 'docker.io/cheeza42/dockerizing-project'
     DOCKERFILE_PATH = 'Rolling_project_part_2/dockerfile'
     BUILD_CONTEXT   = 'Rolling_project_part_2'
@@ -103,6 +103,7 @@ pipeline {
           docker push '${IMAGE_NAME}:${IMAGE_TAG}'
           docker push '${IMAGE_NAME}:latest'
         """
+        sh 'docker logout || true'    
       }
     }
   }
