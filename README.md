@@ -160,3 +160,5 @@ Resources: requests (100m CPU, 128Mi RAM), limits (500m CPU, 256Mi RAM)
 Service labels: app: <Release.Name>  
 
 ✅ Recommendation: In production, store AWS credentials in a Kubernetes Secret and reference them from the Deployment.
+
+check check 
