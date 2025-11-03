@@ -4,7 +4,7 @@ deployment:
   imagetag: v1
 
 service:
-  #note: the is type ClusterIP
+  type: LoadBalancer #note: the is type ClusterIP
   port: 80
   targetport: 5001
 
