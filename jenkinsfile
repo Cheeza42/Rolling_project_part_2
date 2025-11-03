@@ -23,13 +23,17 @@ spec:
     BUILD_CONTEXT   = '.'
   }
 
+  parameters {
+    booleanParam(name: 'DEPLOY_TO_MINIKUBE', defaultValue: false, description: 'If true, run real Helm deploy to Minikube')
+  }
+
   stages {
     stage('Clone Repository') {
       steps {
         git branch: 'main', url: 'https://github.com/cheeza42/Rolling_project_part_2.git'
       }
     }
-    
+
     stage('Compute Tag') {
       steps {
         script {
@@ -40,7 +44,6 @@ spec:
       }
     }
 
-    
     stage('Parallel Checks') {
       parallel {
         stage('Linting') {
@@ -60,30 +63,67 @@ spec:
       }
     }
 
-        stage('Build & Push (Kaniko)') {
-          steps {
-            sh '''
-              set -e
-              echo "==> Docker auth"
-              mkdir -p /kaniko/.docker
-              AUTH=$(printf "%s" "${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD}" | base64 | tr -d '\\n')
-              printf '{"auths":{"https://index.docker.io/v1/":{"auth":"%s"}}}\n' "$AUTH" > /kaniko/.docker/config.json
-              wc -c /kaniko/.docker/config.json
+    stage('Build & Push (Kaniko)') {
+      steps {
+        sh '''
+          set -e
+          echo "==> Docker auth"
+          mkdir -p /kaniko/.docker
+          AUTH=$(printf "%s" "${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD}" | base64 | tr -d '\\n')
+          printf '{"auths":{"https://index.docker.io/v1/":{"auth":"%s"}}}\n' "$AUTH" > /kaniko/.docker/config.json
+          wc -c /kaniko/.docker/config.json
 
-              DF_REL="${DOCKERFILE_PATH#${BUILD_CONTEXT}/}"
-              [ "$DF_REL" = "$DOCKERFILE_PATH" ] && DF_REL="$DOCKERFILE_PATH"
-              test -f "${BUILD_CONTEXT}/${DF_REL}" || { echo "Dockerfile not found at ${BUILD_CONTEXT}/${DF_REL}"; ls -la "${BUILD_CONTEXT}"; exit 1; }
+          DF_REL="${DOCKERFILE_PATH#${BUILD_CONTEXT}/}"
+          [ "$DF_REL" = "$DOCKERFILE_PATH" ] && DF_REL="$DOCKERFILE_PATH"
+          test -f "${BUILD_CONTEXT}/${DF_REL}" || { echo "Dockerfile not found at ${BUILD_CONTEXT}/${DF_REL}"; ls -la "${BUILD_CONTEXT}"; exit 1; }
 
-              echo "==> Kaniko build & push"
-              /kaniko/executor \
-                --verbosity=debug \
-                --context="${BUILD_CONTEXT}" \
-                --dockerfile="${DOCKERFILE_PATH}" \
-                --destination="${IMAGE_NAME}:${IMAGE_TAG}" \
-                --destination="${IMAGE_NAME}:latest"
-            '''
-          }
+          echo "==> Kaniko build & push"
+          /kaniko/executor \
+            --verbosity=debug \
+            --context="${BUILD_CONTEXT}" \
+            --dockerfile="${DOCKERFILE_PATH}" \
+            --destination="${IMAGE_NAME}:${IMAGE_TAG}" \
+            --destination="${IMAGE_NAME}:latest"
+        '''
       }
+    }
+
+    stage('Deploy Dry-Run (no changes)') {
+      steps {
+        sh '''
+          echo "==> Helm Dry-Run (printing commands only, no cluster changes)"
+          CHART_PATH="${WORKSPACE}/helm_chart_projct"
+          echo "kubectl config use-context minikube"
+          echo "helm upgrade --install myapp \\"${CHART_PATH}\\" \\
+            --set deployment.imagename=docker.io/cheeza42/dockerizing-project \\
+            --set deployment.imagetag=${IMAGE_TAG} \\
+            --namespace default"
+          echo "kubectl rollout status deployment/myapp -n default"
+          echo "kubectl get pods,svc -n default"
+        '''
+      }
+    }
+
+    stage('Deploy to Minikube (Helm)') {
+      when { expression { return params.DEPLOY_TO_MINIKUBE } }
+      steps {
+        sh '''
+          echo "==> Starting Helm deploy to Minikube"
+          CHART_PATH="${WORKSPACE}/helm_chart_projct"
+
+          # NOTE: This stage assumes kubectl and helm are available in the agent container.
+          kubectl config use-context minikube
+
+          helm upgrade --install myapp "${CHART_PATH}" \
+            --set deployment.imagename=docker.io/cheeza42/dockerizing-project \
+            --set deployment.imagetag=${IMAGE_TAG} \
+            --namespace default
+
+          kubectl rollout status deployment/myapp -n default
+          kubectl get pods,svc -n default
+        '''
+      }
+    }
   }
 
   post {
