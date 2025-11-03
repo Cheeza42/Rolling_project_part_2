@@ -11,9 +11,7 @@ service:
 ingress:
   enabled: true
   ingressClassName: nginx
-  hosts: 
-    - awsviewer.com
-    - app.192.168.49.2.nip.io # when running on local    
+  host: awsviewer.com   
 
 aws:
   accessKeyId: AWS_ACCESS_KEY_ID
