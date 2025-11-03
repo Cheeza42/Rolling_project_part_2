@@ -161,6 +161,3 @@ Service labels: app: <Release.Name>
 
 ✅ Recommendation: In production, store AWS credentials in a Kubernetes Secret and reference them from the Deployment.
 
-check check 
-
-trying to make a webhook
