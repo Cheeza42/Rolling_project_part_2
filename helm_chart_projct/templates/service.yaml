@@ -11,8 +11,10 @@ spec:
   {{- end }}
   selector:
     app: {{ .Release.Name }}
+  {{- $svc := .Values.service | default (dict) }}
   ports:
-    - port: {{ .Values.service.port | default 80 }}
-      targetPort: {{ .Values.service.targetPort | default 80 }}
+    - port: {{ $svc.port | default 80 }}
+      targetPort: {{ $svc.targetPort | default 80 }}
       protocol: TCP
       name: http
+
