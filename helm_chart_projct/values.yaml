@@ -8,7 +8,7 @@ service: #note: the is type ClusterIP
   targetport: 5001
 
 ingress:
-  enabled: true
+  enabled: false
   ingressClassName: nginx
   host: awsviewer.com   
 
