@@ -3,18 +3,11 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}
 spec:
-  {{- $ing := .Values.ingress | default (dict) }}
-  {{- if (default false $ing.enabled) }}
-  type: ClusterIP
-  {{- else }}
-  type: LoadBalancer
-  {{- end }}
+  type: {{- if .Values.ingress.enabled }} ClusterIP {{- else }} LoadBalancer {{- end }}
   selector:
     app: {{ .Release.Name }}
-  {{- $svc := .Values.service | default (dict) }}
   ports:
-    - port: {{ $svc.port | default 80 }}
-      targetPort: {{ $svc.targetPort | default 80 }}
-      protocol: TCP
-      name: http
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetport }}
+
 
