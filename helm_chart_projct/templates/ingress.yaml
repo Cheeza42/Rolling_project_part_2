@@ -1,12 +1,12 @@
-{{- if .values.ingress.enabled }}
+{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Release.Name }}
 spec:
-  ingressClassName: {{ .values.ingress.ingressClassName | default "nginx" }}
+  ingressClassName: {{ .Values.ingress.ingressClassName | default "nginx" }}
   rules:    
-    - host: {{ .valuess.ingress.host | quote }}
+    - host: {{ .Values.ingress.host | quote }}
       http:
         paths:
           - path: /
@@ -15,5 +15,5 @@ spec:
               service:
                 name: {{ .Release.Name }}
                 port:
-                  number: {{ .values.service.port }}
+                  number: {{ .Values.service.port }}
 {{- end }}
