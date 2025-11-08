@@ -104,7 +104,7 @@ spec:
     stage('gitops-git-safe') {
       steps {
         container('git') {
-          sh 'git config --global --add safe.directory "/home/jenkins/agent/workspace/flask-pipeline/gitops-repo" || true'
+          sh 'git config --global --add safe.directory "*" || true'
         }
       }
     }
@@ -113,25 +113,30 @@ spec:
     stage('gitops-init-branch') {
       steps {
         container('git') {
-          dir('gitops-repo') {
-            checkout([$class: 'GitSCM',
-              branches: [[name: "*/${GITOPS_BASE_BRANCH}"]],
-              userRemoteConfigs: [[url: "${GITOPS_REPO_URL}", credentialsId: "${GITOPS_CREDENTIALS}"]]
-            ])
-            sh """
+          withCredentials([usernamePassword(credentialsId: "${GITOPS_CREDENTIALS}", usernameVariable: 'G_USER', passwordVariable: 'G_TOKEN')]) {
+            sh '''
               set -e
-              git fetch origin
+              export GIT_TERMINAL_PROMPT=0
+              rm -rf gitops-repo
+              mkdir -p gitops-repo
+              cd gitops-repo
+              git init
+              git remote add origin "https://${G_USER}:${G_TOKEN}@${GITOPS_REPO_URL#https://}"
+              git fetch --depth=1 origin ${GITOPS_BASE_BRANCH}
+              git checkout -B ${GITOPS_BASE_BRANCH} origin/${GITOPS_BASE_BRANCH} || git checkout -B ${GITOPS_BASE_BRANCH}
               if git ls-remote --exit-code --heads origin ${GITOPS_BRANCH} >/dev/null 2>&1; then
-                echo "branch exists"
+              git fetch --depth=1 origin ${GITOPS_BRANCH}
+              git checkout -B ${GITOPS_BRANCH} origin/${GITOPS_BRANCH}
               else
-                git checkout -B ${GITOPS_BRANCH} origin/${GITOPS_BASE_BRANCH}
+                git checkout -B ${GITOPS_BRANCH} ${GITOPS_BASE_BRANCH}
                 git push -u origin ${GITOPS_BRANCH}
               fi
-            """
+            '''
           }
         }
       }
-    }
+    } 
+
 
     stage('gitops-seed-once') {
       steps {
@@ -161,38 +166,40 @@ spec:
     stage('gitops-update') {
       steps {
         container('git') {
-          dir('gitops-repo') {
-            checkout([$class: 'GitSCM',
-              branches: [[name: "*/${GITOPS_BRANCH}"]],
-              userRemoteConfigs: [[url: "${GITOPS_REPO_URL}", credentialsId: "${GITOPS_CREDENTIALS}"]]
-            ])
-            sh """
-              set -e
-              git config user.email "jenkins@local"
-              git config user.name "jenkins"
-              if [ ! -f "${MANIFEST_FILE}" ]; then
-                printf "image:\\n  repository: %s\\n  tag: %s\\n" "${IMAGE_NAME}" "${IMAGE_TAG}" > "${MANIFEST_FILE}"
-              else
-                if grep -q '^[[:space:]]*repository:' "${MANIFEST_FILE}"; then
-                  sed -i 's|^[[:space:]]*repository:.*|  repository: '"${IMAGE_NAME}"'|' "${MANIFEST_FILE}"
+          withCredentials([usernamePassword(credentialsId: "${GITOPS_CREDENTIALS}", usernameVariable: 'G_USER', passwordVariable: 'G_TOKEN')]) {
+            dir('gitops-repo') {
+              sh '''
+                set -e
+                export GIT_TERMINAL_PROMPT=0
+                git remote set-url origin "https://${G_USER}:${G_TOKEN}@${GITOPS_REPO_URL#https://}"
+                git checkout ${GITOPS_BRANCH}
+                git pull --ff-only origin ${GITOPS_BRANCH}
+                git config user.email "jenkins@local"
+                git config user.name "jenkins"
+                if [ ! -f "${MANIFEST_FILE}" ]; then
+                  printf "image:\\n  repository: %s\\n  tag: %s\\n" "${IMAGE_NAME}" "${IMAGE_TAG}" > "${MANIFEST_FILE}"
                 else
-                  sed -i '1i image:\\n  repository: '"${IMAGE_NAME}"'' "${MANIFEST_FILE}"
+                  if grep -q '^[[:space:]]*repository:' "${MANIFEST_FILE}"; then
+                    sed -i 's|^[[:space:]]*repository:.*|  repository: '"${IMAGE_NAME}"'|' "${MANIFEST_FILE}"
+                  else
+                    sed -i '1i image:\\n  repository: '"${IMAGE_NAME}"'' "${MANIFEST_FILE}"
+                  fi
+                  if grep -q '^[[:space:]]*tag:' "${MANIFEST_FILE}"; then
+                    sed -i 's|^[[:space:]]*tag:.*|  tag: '"${IMAGE_TAG}"'|' "${MANIFEST_FILE}"
+                  else
+                    sed -i 's|^[[:space:]]*repository:.*|  repository: '"${IMAGE_NAME}"'\\n  tag: '"${IMAGE_TAG}"'|' "${MANIFEST_FILE}"
+                  fi
                 fi
-                if grep -q '^[[:space:]]*tag:' "${MANIFEST_FILE}"; then
-                  sed -i 's|^[[:space:]]*tag:.*|  tag: '"${IMAGE_TAG}"'|' "${MANIFEST_FILE}"
-                else
-                  sed -i 's|^[[:space:]]*repository:.*|  repository: '"${IMAGE_NAME}"'\\n  tag: '"${IMAGE_TAG}"'|' "${MANIFEST_FILE}"
-                fi
-              fi
-              git add "${MANIFEST_FILE}"
-              git commit -m "set image ${IMAGE_NAME}:${IMAGE_TAG}" || echo "nothing to commit"
-              git push origin ${GITOPS_BRANCH}
-            """
+                git add "${MANIFEST_FILE}"
+                git commit -m "set image ${IMAGE_NAME}:${IMAGE_TAG}" || echo "nothing to commit"
+                git push origin ${GITOPS_BRANCH}
+              '''
+            }
           }
         }
       }
     }
-  }
+
 
   post {
     success { echo "✅ done: ${IMAGE_NAME}:${IMAGE_TAG} -> ${GITOPS_BRANCH}" }
