@@ -161,3 +161,4 @@ Service labels: app: <Release.Name>
 
 ✅ Recommendation: In production, store AWS credentials in a Kubernetes Secret and reference them from the Deployment.
 
+Edding ArgoCD part soon...
