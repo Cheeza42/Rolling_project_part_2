@@ -14,9 +14,17 @@ spec:
     image: alpine/git
     command: ["cat"]
     tty: true
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command: ["cat"]
+    tty: true
 """
       defaultContainer 'kaniko'
     }
+  }
+
+  parameters {
+    booleanParam(name: 'ARGOCD_AUTO_SYNC', defaultValue: false, description: 'Enable ArgoCD auto-sync on app after update')
   }
 
   environment {
@@ -145,7 +153,7 @@ spec:
                 git config user.name "jenkins"
                 mkdir -p environments/prod
                 [ -d "${CHART_DST_DIR}" ] || cp -R "${WORKSPACE}/${CHART_SRC_DIR}" "${CHART_DST_DIR}"
-                if [ ! -f "${MANIFEST_FILE}" ]; then
+                if [ ! -f "${MANIFEST_FILE}"; then
                   printf "image:\\n  repository: %s\\n  tag: %s\\n" "${IMAGE_NAME}" "${IMAGE_TAG}" > "${MANIFEST_FILE}"
                 fi
                 git add "${CHART_DST_DIR}" "${MANIFEST_FILE}" || true
@@ -190,6 +198,17 @@ spec:
               '''
             }
           }
+        }
+      }
+    }
+
+    stage('ArgoCD Auto-Sync') {
+      when { expression { return params.ARGOCD_AUTO_SYNC } }
+      steps {
+        container('kubectl') {
+          sh '''
+            kubectl -n argocd patch application myapp-prod --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","PrunePropagationPolicy=background","PruneLast=true"]}}}'
+          '''
         }
       }
     }
