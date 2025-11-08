@@ -100,6 +100,15 @@ spec:
         }
       }
     }
+    
+    stage('gitops-git-safe') {
+      steps {
+        container('git') {
+          sh 'git config --global --add safe.directory "/home/jenkins/agent/workspace/flask-pipeline/gitops-repo" || true'
+        }
+      }
+    }
+
 
     stage('gitops-init-branch') {
       steps {
