@@ -20,16 +20,14 @@ spec:
           ports:
             - containerPort: {{ .Values.service.targetport }}
           livenessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: {{ .Values.service.targetport }}
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 2
             failureThreshold: 5
           readinessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: {{ .Values.service.targetport }}
             initialDelaySeconds: 10
             periodSeconds: 10
