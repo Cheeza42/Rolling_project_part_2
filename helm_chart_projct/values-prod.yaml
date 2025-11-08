@@ -1,0 +1,10 @@
+deployment:
+  enabled: true
+service:
+  enabled: true
+ingress:
+  enabled: true
+  ingressClassName: nginx
+image:
+  repository: docker.io/cheeza42/dockerizing-project
+  tag: latest
