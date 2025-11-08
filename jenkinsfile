@@ -26,7 +26,7 @@ spec:
     DOCKERFILE_PATH = 'dockerfile'
     BUILD_CONTEXT = '.'
 
-    GITOPS_REPO_URL = 'https://github.com/USER/REPO.git'
+    GITOPS_REPO_URL = 'https://github.com/cheeza42/Rolling_project_part_2.git'
     GITOPS_CREDENTIALS = 'github-creds'
     GITOPS_BASE_BRANCH = 'main'
     GITOPS_BRANCH = 'env-prod'
@@ -84,6 +84,20 @@ spec:
             --destination="\${IMAGE_NAME}:\${IMAGE_TAG}" \
             --destination="\${IMAGE_NAME}:latest"
         """
+      }
+    }
+
+    stage('gitops-preflight') {
+      steps {
+        container('git') {
+          withCredentials([usernamePassword(credentialsId: "${GITOPS_CREDENTIALS}", usernameVariable: 'G_USER', passwordVariable: 'G_TOKEN')]) {
+            sh '''
+              set -e
+              echo "==> Testing GitHub connectivity for ${GITOPS_REPO_URL}"
+              GIT_CURL_VERBOSE=1 git ls-remote "https://${G_USER}:${G_TOKEN}@${GITOPS_REPO_URL#https://}" HEAD
+            '''
+          }
+        }
       }
     }
 
@@ -172,7 +186,7 @@ spec:
   }
 
   post {
-    success { echo "done: ${IMAGE_NAME}:${IMAGE_TAG} -> ${GITOPS_BRANCH}" }
-    failure { echo 'failed' }
+    success { echo "✅ done: ${IMAGE_NAME}:${IMAGE_TAG} -> ${GITOPS_BRANCH}" }
+    failure { echo '❌ pipeline failed' }
   }
 }
