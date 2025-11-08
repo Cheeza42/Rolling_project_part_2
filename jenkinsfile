@@ -10,6 +10,10 @@ spec:
     image: gcr.io/kaniko-project/executor:debug
     command: ["cat"]
     tty: true
+  - name: git
+    image: alpine/git
+    command: ["cat"]
+    tty: true
 """
       defaultContainer 'kaniko'
     }
@@ -18,13 +22,17 @@ spec:
   environment {
     DOCKERHUB_USERNAME = credentials('cheeza42-username')
     DOCKERHUB_PASSWORD = credentials('cheeza42-password')
-    IMAGE_NAME      = 'docker.io/cheeza42/dockerizing-project'
+    IMAGE_NAME = 'docker.io/cheeza42/dockerizing-project'
     DOCKERFILE_PATH = 'dockerfile'
-    BUILD_CONTEXT   = '.'
-  }
+    BUILD_CONTEXT = '.'
 
-  parameters {
-    booleanParam(name: 'DEPLOY_TO_MINIKUBE', defaultValue: false, description: 'If true, run real Helm deploy to Minikube')
+    GITOPS_REPO_URL = 'https://github.com/USER/REPO.git'
+    GITOPS_CREDENTIALS = 'github-creds'
+    GITOPS_BASE_BRANCH = 'main'
+    GITOPS_BRANCH = 'env-prod'
+    MANIFEST_FILE = 'environments/prod/values.yaml'
+    CHART_SRC_DIR = 'helm_chart_projct'
+    CHART_DST_DIR = 'helm_chart_projct'
   }
 
   stages {
@@ -48,16 +56,12 @@ spec:
       parallel {
         stage('Linting') {
           steps {
-            sh '''
-              echo "[MOCK] flake8/hadolint/shellcheck passed (skipped for Kaniko setup)"
-            '''
+            sh 'echo "[MOCK] lint passed"'
           }
         }
         stage('Security Scan') {
           steps {
-            sh '''
-              echo "[MOCK] bandit/trivy scan passed (skipped for Kaniko setup)"
-            '''
+            sh 'echo "[MOCK] security scan passed"'
           }
         }
       }
@@ -65,69 +69,110 @@ spec:
 
     stage('Build & Push (Kaniko)') {
       steps {
-        sh '''
+        sh """
           set -e
-          echo "==> Docker auth"
           mkdir -p /kaniko/.docker
-          AUTH=$(printf "%s" "${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD}" | base64 | tr -d '\\n')
-          printf '{"auths":{"https://index.docker.io/v1/":{"auth":"%s"}}}\n' "$AUTH" > /kaniko/.docker/config.json
-          wc -c /kaniko/.docker/config.json
-
-          DF_REL="${DOCKERFILE_PATH#${BUILD_CONTEXT}/}"
-          [ "$DF_REL" = "$DOCKERFILE_PATH" ] && DF_REL="$DOCKERFILE_PATH"
-          test -f "${BUILD_CONTEXT}/${DF_REL}" || { echo "Dockerfile not found at ${BUILD_CONTEXT}/${DF_REL}"; ls -la "${BUILD_CONTEXT}"; exit 1; }
-
-          echo "==> Kaniko build & push"
+          AUTH=\$(printf "%s" "${DOCKERHUB_USERNAME}:${DOCKERHUB_PASSWORD}" | base64 | tr -d '\\n')
+          printf '{"auths":{"https://index.docker.io/v1/":{"auth":"%s"}}}\n' "\$AUTH" > /kaniko/.docker/config.json
+          DF_REL="\${DOCKERFILE_PATH#\${BUILD_CONTEXT}/}"
+          [ "\$DF_REL" = "\${DOCKERFILE_PATH}" ] && DF_REL="\${DOCKERFILE_PATH}"
+          test -f "\${BUILD_CONTEXT}/\${DF_REL}" || { echo "Dockerfile not found at \${BUILD_CONTEXT}/\${DF_REL}"; exit 1; }
           /kaniko/executor \
             --verbosity=debug \
-            --context="${BUILD_CONTEXT}" \
-            --dockerfile="${DOCKERFILE_PATH}" \
-            --destination="${IMAGE_NAME}:${IMAGE_TAG}" \
-            --destination="${IMAGE_NAME}:latest"
-        '''
+            --context="\${BUILD_CONTEXT}" \
+            --dockerfile="\${DOCKERFILE_PATH}" \
+            --destination="\${IMAGE_NAME}:\${IMAGE_TAG}" \
+            --destination="\${IMAGE_NAME}:latest"
+        """
       }
     }
 
-    stage('Deploy Dry-Run (no changes)') {
+    stage('gitops-init-branch') {
       steps {
-        sh '''
-          echo "==> Helm Dry-Run (printing commands only, no cluster changes)"
-          CHART_PATH="${WORKSPACE}/helm_chart_projct"
-          echo "kubectl config use-context minikube"
-          echo "helm upgrade --install myapp \\"${CHART_PATH}\\" \\
-            --set deployment.imagename=docker.io/cheeza42/dockerizing-project \\
-            --set deployment.imagetag=${IMAGE_TAG} \\
-            --namespace default"
-          echo "kubectl rollout status deployment/myapp -n default"
-          echo "kubectl get pods,svc -n default"
-        '''
+        container('git') {
+          dir('gitops-repo') {
+            checkout([$class: 'GitSCM',
+              branches: [[name: "*/${GITOPS_BASE_BRANCH}"]],
+              userRemoteConfigs: [[url: "${GITOPS_REPO_URL}", credentialsId: "${GITOPS_CREDENTIALS}"]]
+            ])
+            sh """
+              set -e
+              git fetch origin
+              if git ls-remote --exit-code --heads origin ${GITOPS_BRANCH} >/dev/null 2>&1; then
+                echo "branch exists"
+              else
+                git checkout -B ${GITOPS_BRANCH} origin/${GITOPS_BASE_BRANCH}
+                git push -u origin ${GITOPS_BRANCH}
+              fi
+            """
+          }
+        }
       }
     }
 
-    stage('Deploy to Minikube (Helm)') {
-      when { expression { return params.DEPLOY_TO_MINIKUBE } }
+    stage('gitops-seed-once') {
       steps {
-        sh '''
-          echo "==> Starting Helm deploy to Minikube"
-          CHART_PATH="${WORKSPACE}/helm_chart_projct"
+        container('git') {
+          dir('gitops-repo') {
+            checkout([$class: 'GitSCM',
+              branches: [[name: "*/${GITOPS_BRANCH}"]],
+              userRemoteConfigs: [[url: "${GITOPS_REPO_URL}", credentialsId: "${GITOPS_CREDENTIALS}"]]
+            ])
+            sh """
+              set -e
+              git config user.email "jenkins@local"
+              git config user.name "jenkins"
+              mkdir -p environments/prod
+              [ -d "${CHART_DST_DIR}" ] || cp -R "${WORKSPACE}/${CHART_SRC_DIR}" "${CHART_DST_DIR}"
+              if [ ! -f "${MANIFEST_FILE}" ]; then
+                printf "image:\\n  repository: %s\\n  tag: %s\\n" "${IMAGE_NAME}" "${IMAGE_TAG}" > "${MANIFEST_FILE}"
+              fi
+              git add "${CHART_DST_DIR}" "${MANIFEST_FILE}" || true
+              git diff --cached --quiet || { git commit -m "seed gitops"; git push origin ${GITOPS_BRANCH}; }
+            """
+          }
+        }
+      }
+    }
 
-          # NOTE: This stage assumes kubectl and helm are available in the agent container.
-          kubectl config use-context minikube
-
-          helm upgrade --install myapp "${CHART_PATH}" \
-            --set deployment.imagename=docker.io/cheeza42/dockerizing-project \
-            --set deployment.imagetag=${IMAGE_TAG} \
-            --namespace default
-
-          kubectl rollout status deployment/myapp -n default
-          kubectl get pods,svc -n default
-        '''
+    stage('gitops-update') {
+      steps {
+        container('git') {
+          dir('gitops-repo') {
+            checkout([$class: 'GitSCM',
+              branches: [[name: "*/${GITOPS_BRANCH}"]],
+              userRemoteConfigs: [[url: "${GITOPS_REPO_URL}", credentialsId: "${GITOPS_CREDENTIALS}"]]
+            ])
+            sh """
+              set -e
+              git config user.email "jenkins@local"
+              git config user.name "jenkins"
+              if [ ! -f "${MANIFEST_FILE}" ]; then
+                printf "image:\\n  repository: %s\\n  tag: %s\\n" "${IMAGE_NAME}" "${IMAGE_TAG}" > "${MANIFEST_FILE}"
+              else
+                if grep -q '^[[:space:]]*repository:' "${MANIFEST_FILE}"; then
+                  sed -i 's|^[[:space:]]*repository:.*|  repository: '"${IMAGE_NAME}"'|' "${MANIFEST_FILE}"
+                else
+                  sed -i '1i image:\\n  repository: '"${IMAGE_NAME}"'' "${MANIFEST_FILE}"
+                fi
+                if grep -q '^[[:space:]]*tag:' "${MANIFEST_FILE}"; then
+                  sed -i 's|^[[:space:]]*tag:.*|  tag: '"${IMAGE_TAG}"'|' "${MANIFEST_FILE}"
+                else
+                  sed -i 's|^[[:space:]]*repository:.*|  repository: '"${IMAGE_NAME}"'\\n  tag: '"${IMAGE_TAG}"'|' "${MANIFEST_FILE}"
+                fi
+              fi
+              git add "${MANIFEST_FILE}"
+              git commit -m "set image ${IMAGE_NAME}:${IMAGE_TAG}" || echo "nothing to commit"
+              git push origin ${GITOPS_BRANCH}
+            """
+          }
+        }
       }
     }
   }
 
   post {
-    success { echo "Pipeline completed successfully. Image pushed: ${IMAGE_NAME}:${IMAGE_TAG}" }
-    failure { echo 'Pipeline failed! Check logs for details.' }
+    success { echo "done: ${IMAGE_NAME}:${IMAGE_TAG} -> ${GITOPS_BRANCH}" }
+    failure { echo 'failed' }
   }
 }
