@@ -21,14 +21,20 @@ spec:
             - containerPort: {{ .Values.service.targetport }}
           livenessProbe:
             httpGet:
-              path: /health
+              path: /
               port: {{ .Values.service.targetport }}
-            initialDelaySeconds: 10
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 5
           readinessProbe:
             httpGet:
-              path: /ready
+              path: /
               port: {{ .Values.service.targetport }}
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 5
           resources:
             requests:
               cpu: "100m"
