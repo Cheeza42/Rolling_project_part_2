@@ -7,4 +7,4 @@ ingress:
   ingressClassName: nginx
 image:
   repository: docker.io/cheeza42/dockerizing-project
-  tag: latest
+  tag: v1
