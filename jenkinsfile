@@ -25,7 +25,6 @@ spec:
     IMAGE_NAME = 'docker.io/cheeza42/dockerizing-project'
     DOCKERFILE_PATH = 'dockerfile'
     BUILD_CONTEXT = '.'
-
     GITOPS_REPO_URL = 'https://github.com/cheeza42/Rolling_project_part_2.git'
     GITOPS_CREDENTIALS = 'github-creds'
     GITOPS_BASE_BRANCH = 'main'
@@ -55,14 +54,10 @@ spec:
     stage('Parallel Checks') {
       parallel {
         stage('Linting') {
-          steps {
-            sh 'echo "[MOCK] lint passed"'
-          }
+          steps { sh 'echo "[MOCK] lint passed"' }
         }
         stage('Security Scan') {
-          steps {
-            sh 'echo "[MOCK] security scan passed"'
-          }
+          steps { sh 'echo "[MOCK] security scan passed"' }
         }
       }
     }
@@ -93,7 +88,6 @@ spec:
           withCredentials([usernamePassword(credentialsId: "${GITOPS_CREDENTIALS}", usernameVariable: 'G_USER', passwordVariable: 'G_TOKEN')]) {
             sh '''
               set -e
-              echo "Testing GitHub connectivity"
               GIT_CURL_VERBOSE=1 git ls-remote "https://${G_USER}:${G_TOKEN}@${GITOPS_REPO_URL#https://}" HEAD
             '''
           }
