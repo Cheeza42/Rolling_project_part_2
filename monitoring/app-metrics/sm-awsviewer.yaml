@@ -8,7 +8,7 @@ metadata:
 spec:
   namespaceSelector:
     matchNames:
-      - default
+      - dev
   selector:
     matchLabels:
       app: awsviewer
