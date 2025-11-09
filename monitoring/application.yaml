@@ -15,6 +15,11 @@ spec:
     - repoURL: https://github.com/cheeza42/Rolling_project_part_2.git
       targetRevision: env-prod
       ref: values
+    - repoURL: https://github.com/cheeza42/Rolling_project_part_2.git
+      targetRevision: env-prod
+      path: monitoring/app-metrics
+      directory:
+        recurse: true
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

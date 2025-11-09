@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: awsviewer-metrics
+  namespace: default
+  labels:
+    app: awsviewer
+spec:
+  selector:
+    app: awsviewer
+  ports:
+    - name: metrics
+      port: 8000
+      targetPort: 8000
