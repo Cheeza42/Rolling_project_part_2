@@ -1,0 +1,15 @@
+grafana:
+  adminUser: admin
+  adminPassword: change-me
+  service:
+    type: LoadBalancer
+  ingress:
+    enabled: false
+
+prometheus:
+  service:
+    type: ClusterIP
+
+alertmanager:
+  service:
+    type: ClusterIP
