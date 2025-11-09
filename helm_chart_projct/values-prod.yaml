@@ -8,7 +8,7 @@ service:
   enabled: true
   type: ClusterIP
   port: 80
-  targetport: 5000
+  targetport: 5001
 
 ingress:
   enabled: true
