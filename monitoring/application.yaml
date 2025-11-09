@@ -10,6 +10,7 @@ spec:
       chart: kube-prometheus-stack
       targetRevision: 65.3.0
       helm:
+        includeCRDs: true
         valueFiles:
           - $values/monitoring/prod-values.yaml
     - repoURL: https://github.com/cheeza42/Rolling_project_part_2.git
@@ -22,4 +23,6 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
 
