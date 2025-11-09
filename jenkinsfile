@@ -205,14 +205,19 @@ spec:
     stage('ArgoCD Auto-Sync') {
       when { expression { return params.ARGOCD_AUTO_SYNC } }
       steps {
-        container('kubectl') {
+        container('git') {
           sh '''
+            apk add --no-cache curl
+            curl -LO "https://dl.k8s.io/release/v1.32.0/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            mv kubectl /usr/local/bin/
+
             kubectl -n argocd patch application myapp-prod --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","PrunePropagationPolicy=background","PruneLast=true"]}}}'
           '''
         }
       }
     }
-  }
+
 
   post {
     success { echo "done: ${IMAGE_NAME}:${IMAGE_TAG} -> ${GITOPS_BRANCH}" }
