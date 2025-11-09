@@ -13,3 +13,7 @@ prometheus:
 alertmanager:
   service:
     type: ClusterIP
+
+prometheusOperator:
+  admissionWebhooks:
+    enabled: false
