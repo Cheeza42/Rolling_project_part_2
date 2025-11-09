@@ -1,7 +1,7 @@
 deployment:
   enabled: true
   imagename: docker.io/cheeza42/dockerizing-project
-  imagetag: v1
+  imagetag: v2
   replicaset: 2
 
 service:
