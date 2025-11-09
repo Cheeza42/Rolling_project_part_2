@@ -219,7 +219,7 @@ spec:
       }
     }
 
-  }  
+  }  // ← THIS BLOCK WAS MISSING
 
   post {
     success { echo "done: ${IMAGE_NAME}:${IMAGE_TAG} -> ${GITOPS_BRANCH}" }
