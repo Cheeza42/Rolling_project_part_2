@@ -24,7 +24,7 @@ spec:
   }
 
   parameters {
-    booleanParam(name: 'ARGOCD_AUTO_SYNC', defaultValue: false, description: 'Enable ArgoCD auto-sync after update')
+    booleanParam(name: 'ARGOCD_AUTO_SYNC', defaultValue: false, description: 'Enable ArgoCD auto-sync on app after update')
   }
 
   environment {
@@ -43,7 +43,6 @@ spec:
   }
 
   stages {
-
     stage('Clone Repository') {
       steps {
         git branch: 'main', url: 'https://github.com/cheeza42/Rolling_project_part_2.git'
@@ -219,7 +218,6 @@ spec:
       }
     }
 
-  }  // ← THIS BLOCK WAS MISSING
 
   post {
     success { echo "done: ${IMAGE_NAME}:${IMAGE_TAG} -> ${GITOPS_BRANCH}" }
