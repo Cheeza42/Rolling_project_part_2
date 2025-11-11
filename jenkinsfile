@@ -34,7 +34,7 @@ spec:
     GITOPS_CREDENTIALS = 'github-creds'
     GITOPS_BASE_BRANCH = 'main'
     GITOPS_BRANCH = 'env-prod'
-    MANIFEST_FILE = 'environments/prod/values-prod.yaml'
+    MANIFEST_FILE = 'helm_chart_projct/values-prod.yaml'
     CHART_SRC_DIR = 'helm_chart_projct'
     CHART_DST_DIR = 'helm_chart_projct'
   }
