@@ -1,8 +1,9 @@
-image: docker.io/cheeza42/dockerizing-project:20251111-121706
+image:
+  repository: docker.io/cheeza42/dockerizing-project
+  tag: ""
+
 deployment:
   enabled: true
-  imagename: docker.io/cheeza42/dockerizing-project
-  imagetag: v1
   replicaset: 2
 
 service:
