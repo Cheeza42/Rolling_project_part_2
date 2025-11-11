@@ -1,51 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ include "app.fullname" . | default .Release.Name }}
   labels:
     {{- include "app.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.deployment.replicaset }}
   selector:
     matchLabels:
-      {{- include "app.labels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ include "app.name" . | default .Release.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        {{- include "app.labels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ include "app.name" . | default .Release.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
-        - name: {{ .Release.Name }}
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        - name: {{ include "app.name" . | default .Release.Name }}
+          image: {{ .Values.deployment.imagename }}{{- if .Values.deployment.imagetag }}:{{ .Values.deployment.imagetag }}{{- end }}
           ports:
             - containerPort: {{ .Values.service.targetport }}
-          livenessProbe:
-            tcpSocket:
-              port: {{ .Values.service.targetport }}
-            initialDelaySeconds: 20
-            periodSeconds: 10
-            timeoutSeconds: 2
-            failureThreshold: 5
-          readinessProbe:
-            tcpSocket:
-              port: {{ .Values.service.targetport }}
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 2
-            failureThreshold: 5
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "500m"
-              memory: "256Mi"
-          env:
-            - name: AWS_ACCESS_KEY_ID
-              value: "{{ .Values.aws.accessKeyId }}"
-            - name: AWS_SECRET_ACCESS_KEY
-              value: "{{ .Values.aws.secretAccessKey }}"
-            - name: AWS_REGION
-              value: "{{ .Values.aws.region }}"
-            - name: AWS_DEFAULT_REGION
-              value: "{{ .Values.aws.region }}"
