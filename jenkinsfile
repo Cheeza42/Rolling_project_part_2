@@ -14,7 +14,7 @@ spec:
     image: alpine/git
     command: ["cat"]
     tty: true
-  - name: kubectl
+    - name: kubectl
     image: bitnami/kubectl:latest
     command: ["cat"]
     tty: true
@@ -23,7 +23,7 @@ spec:
     }
   }
 
-  parameters {
+    parameters {
     booleanParam(name: 'ARGOCD_AUTO_SYNC', defaultValue: false, description: 'Enable ArgoCD auto-sync on app after update')
   }
 
@@ -33,6 +33,7 @@ spec:
     IMAGE_NAME = 'docker.io/cheeza42/dockerizing-project'
     DOCKERFILE_PATH = 'dockerfile'
     BUILD_CONTEXT = '.'
+
     GITOPS_REPO_URL = 'https://github.com/cheeza42/Rolling_project_part_2.git'
     GITOPS_CREDENTIALS = 'github-creds'
     GITOPS_BASE_BRANCH = 'main'
@@ -96,6 +97,7 @@ spec:
           withCredentials([usernamePassword(credentialsId: "${GITOPS_CREDENTIALS}", usernameVariable: 'G_USER', passwordVariable: 'G_TOKEN')]) {
             sh '''
               set -e
+              echo "Testing GitHub connectivity"
               GIT_CURL_VERBOSE=1 git ls-remote "https://${G_USER}:${G_TOKEN}@${GITOPS_REPO_URL#https://}" HEAD
             '''
           }
@@ -171,44 +173,40 @@ spec:
           withCredentials([usernamePassword(credentialsId: "${GITOPS_CREDENTIALS}", usernameVariable: 'G_USER', passwordVariable: 'G_TOKEN')]) {
             dir('gitops-repo') {
               sh '''
-                set -e
-                export GIT_TERMINAL_PROMPT=0
-                git remote set-url origin "https://${G_USER}:${G_TOKEN}@${GITOPS_REPO_URL#https://}"
-                git checkout ${GITOPS_BRANCH}
-                git pull --ff-only origin ${GITOPS_BRANCH}
-                git config user.email "jenkins@local"
-                git config user.name "jenkins"
-                if [ ! -f "${MANIFEST_FILE}" ]; then
-                  printf "image:\\n  repository: %s\\n  tag: %s\\n" "${IMAGE_NAME}" "${IMAGE_TAG}" > "${MANIFEST_FILE}"
-                else
-                  if grep -q '^[[:space:]]*repository:' "${MANIFEST_FILE}"; then
-                    sed -i 's|^[[:space:]]*repository:.*|  repository: '"${IMAGE_NAME}"'|' "${MANIFEST_FILE}"
-                  else
-                    sed -i '1i image:\\n  repository: '"${IMAGE_NAME}"'' "${MANIFEST_FILE}"
-                  fi
-                  if grep -q '^[[:space:]]*tag:' "${MANIFEST_FILE}"; then
-                    sed -i 's|^[[:space:]]*tag:.*|  tag: '"${IMAGE_TAG}"'|' "${MANIFEST_FILE}"
-                  else
-                    sed -i 's|^[[:space:]]*repository:.*|  repository: '"${IMAGE_NAME}"'\\n  tag: '"${IMAGE_TAG}"'|' "${MANIFEST_FILE}"
-                  fi
-                fi
-                git add "${MANIFEST_FILE}"
-                git commit -m "set image ${IMAGE_NAME}:${IMAGE_TAG}" || echo "nothing to commit"
-                git push origin ${GITOPS_BRANCH}
-              '''
+set -e
+export GIT_TERMINAL_PROMPT=0
+git remote set-url origin "https://${G_USER}:${G_TOKEN}@${GITOPS_REPO_URL#https://}"
+git checkout ${GITOPS_BRANCH}
+git pull --ff-only origin ${GITOPS_BRANCH} || true
+git config user.email "jenkins@local"
+git config user.name "jenkins"
+
+mkdir -p "$(dirname "${MANIFEST_FILE}")"
+
+if [ ! -f "${MANIFEST_FILE}" ]; then
+  printf "image:\\n  repository: %s\\n  tag: %s\\n" "${IMAGE_NAME}" "${IMAGE_TAG}" > "${MANIFEST_FILE}"
+else
+  if grep -q '^image:' "${MANIFEST_FILE}"; then
+    awk -v repo="${IMAGE_NAME}" -v tag="${IMAGE_TAG}" '
+      BEGIN{inimg=0}
+      /^image:/ {print; inimg=1; next}
+      inimg && /^[^[:space:]]/ { if(!srepo) print "  repository: " repo; if(!stag) print "  tag: " tag; inimg=0 }
+      inimg && /^[[:space:]]*repository:/ {print "  repository: " repo; srepo=1; next}
+      inimg && /^[[:space:]]*tag:/        {print "  tag: " tag;     stag=1; next}
+      {print}
+      END{ if(inimg){ if(!srepo) print "  repository: " repo; if(!stag) print "  tag: " tag } }
+    ' "${MANIFEST_FILE}" > "${MANIFEST_FILE}.tmp" && mv "${MANIFEST_FILE}.tmp" "${MANIFEST_FILE}"
+  else
+    printf "image:\\n  repository: %s\\n  tag: %s\\n" "${IMAGE_NAME}" "${IMAGE_TAG}" | cat - "${MANIFEST_FILE}" > "${MANIFEST_FILE}.tmp" && mv "${MANIFEST_FILE}.tmp" "${MANIFEST_FILE}"
+  fi
+fi
+
+git add "${MANIFEST_FILE}" || true
+git commit -m "env-prod: set image ${IMAGE_NAME}:${IMAGE_TAG}" || echo "nothing to commit"
+git push origin ${GITOPS_BRANCH}
+'''
             }
           }
-        }
-      }
-    }
-
-    stage('ArgoCD Auto-Sync') {
-      when { expression { return params.ARGOCD_AUTO_SYNC } }
-      steps {
-        container('kubectl') {
-          sh '''
-            kubectl -n argocd patch application myapp-prod --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","PrunePropagationPolicy=background","PruneLast=true"]}}}'
-          '''
         }
       }
     }
