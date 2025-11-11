@@ -1,3 +1,4 @@
-image:
+image: docker.io/cheeza42/dockerizing-project:20251111-111712
+image: docker.io/cheeza42/dockerizing-project:20251111-111712
   repository: docker.io/cheeza42/dockerizing-project
   tag: 20251111-102904
