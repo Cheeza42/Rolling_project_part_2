@@ -1,3 +1,11 @@
+<<<<<<< HEAD
+=======
+image: docker.io/cheeza42/dockerizing-project:20251112-094003
+image: docker.io/cheeza42/dockerizing-project:20251112-094003
+  repository: docker.io/cheeza42/dockerizing-project
+  tag: ""
+
+>>>>>>> 003e1683cfa4a5dc4f5da1e4a46db9e5c9c14d2b
 deployment:
   enabled: true
   imagename: docker.io/cheeza42/dockerizing-project
