@@ -1,3 +1,4 @@
+image: docker.io/cheeza42/dockerizing-project:20251112-095420
 deployment:
   enabled: true
   imagename: docker.io/cheeza42/dockerizing-project
