@@ -1,5 +1,5 @@
-image: docker.io/cheeza42/dockerizing-project:20251111-124442
-image:
+image: docker.io/cheeza42/dockerizing-project:20251112-094003
+image: docker.io/cheeza42/dockerizing-project:20251112-094003
   repository: docker.io/cheeza42/dockerizing-project
   tag: ""
 
