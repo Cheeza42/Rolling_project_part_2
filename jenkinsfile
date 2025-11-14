@@ -48,6 +48,7 @@ spec:
   }
 
   stages {
+
     stage('Clone Repository') {
       steps {
         git branch: 'main', url: 'https://github.com/cheeza42/Rolling_project_part_2.git'
@@ -130,10 +131,13 @@ spec:
               rm -rf gitops-repo
               mkdir -p gitops-repo
               cd gitops-repo
+
               git init
               git remote add origin "https://${G_USER}:${G_TOKEN}@${GITOPS_REPO_URL#https://}"
+
               git fetch --depth=1 origin ${GITOPS_BASE_BRANCH}
               git checkout -B ${GITOPS_BASE_BRANCH} origin/${GITOPS_BASE_BRANCH} || git checkout -B ${GITOPS_BASE_BRANCH}
+
               if git ls-remote --exit-code --heads origin ${GITOPS_BRANCH} >/dev/null 2>&1; then
                 git fetch --depth=1 origin ${GITOPS_BRANCH}
                 git checkout -B ${GITOPS_BRANCH} origin/${GITOPS_BRANCH}
@@ -155,16 +159,21 @@ spec:
               sh '''
                 set -e
                 export GIT_TERMINAL_PROMPT=0
+
                 git remote set-url origin "https://${G_USER}:${G_TOKEN}@${GITOPS_REPO_URL#https://}"
                 git checkout ${GITOPS_BRANCH}
                 git pull --ff-only origin ${GITOPS_BRANCH} || true
+
                 git config user.email "jenkins@local"
                 git config user.name "jenkins"
+
                 mkdir -p environments/prod
                 [ -d "${CHART_DST_DIR}" ] || cp -R "${WORKSPACE}/${CHART_SRC_DIR}" "${CHART_DST_DIR}"
+
                 if [ ! -f "${MANIFEST_FILE}" ]; then
                   printf "image: %s:%s\n" "${IMAGE_NAME}" "${IMAGE_TAG}" > "${MANIFEST_FILE}"
                 fi
+
                 git add "${CHART_DST_DIR}" "${MANIFEST_FILE}" || true
                 git diff --cached --quiet || { git commit -m "seed gitops"; git push origin ${GITOPS_BRANCH}; }
               '''
@@ -182,13 +191,18 @@ spec:
               sh '''
 set -e
 export GIT_TERMINAL_PROMPT=0
+
 git remote set-url origin "https://${G_USER}:${G_TOKEN}@${GITOPS_REPO_URL#https://}"
+
+git fetch origin ${GITOPS_BRANCH}
 git checkout ${GITOPS_BRANCH}
-git pull --ff-only origin ${GITOPS_BRANCH} || true
+git reset --hard origin/${GITOPS_BRANCH}
+
 git config user.email "jenkins@local"
 git config user.name "jenkins"
 
 mkdir -p "$(dirname "${MANIFEST_FILE}")"
+
 if [ ! -f "${MANIFEST_FILE}" ]; then
   printf "image: %s:%s\n" "${IMAGE_NAME}" "${IMAGE_TAG}" > "${MANIFEST_FILE}"
 else
@@ -220,6 +234,7 @@ git push origin ${GITOPS_BRANCH}
         }
       }
     }
+
   }
 
   post {
