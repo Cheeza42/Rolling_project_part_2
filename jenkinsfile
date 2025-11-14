@@ -19,10 +19,9 @@ spec:
     command: ["cat"]
     tty: true
   - name: argocd
-  image: argoproj/argocd:v2.6.15
-  command: ["cat"]
-  tty: true
-
+    image: argoproj/argocd:v2.6.15
+    command: ["cat"]
+    tty: true
 """
       defaultContainer 'kaniko'
     }
@@ -209,8 +208,7 @@ git push origin ${GITOPS_BRANCH}
         }
       }
     }
-  }
-    
+
     stage('ArgoCD Sync env-prod') {
       steps {
         container('argocd') {
@@ -222,8 +220,8 @@ git push origin ${GITOPS_BRANCH}
         }
       }
     }
+  }
 
-  
   post {
     success { echo "done: ${IMAGE_NAME}:${IMAGE_TAG} -> ${GITOPS_BRANCH}" }
     failure { echo 'failed' }
