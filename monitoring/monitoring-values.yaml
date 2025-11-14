@@ -15,5 +15,7 @@ alertmanager:
     type: ClusterIP
 
 prometheusOperator:
+  tls:
+    enabled: false
   admissionWebhooks:
     enabled: false
