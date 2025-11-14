@@ -213,7 +213,7 @@ git push origin ${GITOPS_BRANCH}
     
     stage('ArgoCD Sync env-prod') {
       steps {
-        containe('argocd') {
+        container('argocd') {
           sh """
             argocd login ${ARGOCD_SERVER} --username admin --password ${ARGOCD_PASSWORD} --grpc-web --insecure
             argocd app sync ${ARGOCD_APP} --grpc-web
@@ -222,6 +222,7 @@ git push origin ${GITOPS_BRANCH}
         }
       }
     }
+
   
   post {
     success { echo "done: ${IMAGE_NAME}:${IMAGE_TAG} -> ${GITOPS_BRANCH}" }
