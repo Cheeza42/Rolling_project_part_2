@@ -18,6 +18,11 @@ spec:
     image: bitnami/kubectl:latest
     command: ["cat"]
     tty: true
+  - name: argocd
+  image: argoproj/argocd:v2.6.15
+  command: ["cat"]
+  tty: true
+
 """
       defaultContainer 'kaniko'
     }
@@ -37,6 +42,10 @@ spec:
     MANIFEST_FILE = 'helm_chart_projct/values-prod.yaml'
     CHART_SRC_DIR = 'helm_chart_projct'
     CHART_DST_DIR = 'helm_chart_projct'
+
+    ARGOCD_SERVER = 'argocd-server.argocd.svc.cluster.local:443'
+    ARGOCD_APP = 'myapp-prod'
+    ARGOCD_PASSWORD = credentials('argocd-admin-password')
   }
 
   stages {
@@ -201,7 +210,19 @@ git push origin ${GITOPS_BRANCH}
       }
     }
   }
-
+    
+    stage('ArgoCD Sync env-prod') {
+      steps {
+        containe('argocd') {
+          sh """
+            argocd login ${ARGOCD_SERVER} --username admin --password ${ARGOCD_PASSWORD} --grpc-web --insecure
+            argocd app sync ${ARGOCD_APP} --grpc-web
+            argocd app wait ${ARGOCD_APP} --health --sync --timeout 300 --grpc-web
+          """
+        }
+      }
+    }
+  
   post {
     success { echo "done: ${IMAGE_NAME}:${IMAGE_TAG} -> ${GITOPS_BRANCH}" }
     failure { echo 'failed' }
