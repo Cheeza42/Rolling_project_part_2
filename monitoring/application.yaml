@@ -11,7 +11,7 @@ spec:
       targetRevision: 65.3.0
       helm:
         valueFiles:
-          - $values/monitoring/prod-values.yaml
+          - $values/monitoring/monitoring-values.yaml
     - repoURL: https://github.com/cheeza42/Rolling_project_part_2.git
       targetRevision: env-prod
       ref: values
