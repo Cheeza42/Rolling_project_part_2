@@ -4,7 +4,7 @@ metadata:
   name: awsviewer
   namespace: monitoring
   labels:
-    Release: kube-prometheus-stack
+    release: kube-prometheus-stack
 spec:
   namespaceSelector:
     matchNames:
