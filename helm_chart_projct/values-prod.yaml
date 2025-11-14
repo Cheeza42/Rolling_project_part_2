@@ -7,7 +7,7 @@ deployment:
   enabled: true
   imagename: docker.io/cheeza42/dockerizing-project
   imagetag: 20251111-121706
-  replicaset: 3
+  replicaset: 2
 
 service:
   enabled: true
