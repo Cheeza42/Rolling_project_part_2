@@ -19,7 +19,7 @@ spec:
           image: {{ .Values.deployment.imagename }}:{{ .Values.deployment.imagetag }}
           ports:
             - name: metrics
-            - containerPort: {{ .Values.service.targetport }}
+              containerPort: {{ .Values.service.targetport }}
           livenessProbe:
             httpGet:
               path: /health
