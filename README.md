@@ -140,6 +140,23 @@ It defines all stages, environment variables, and credentials used for the autom
 Once the pipeline completes, the image is automatically pushed to Docker Hub under:  
 👉 **[`cheeza42/dockerizing-project`](https://hub.docker.com/r/cheeza42/dockerizing-project)**
 
+## Prometheus & Grafana Monitoring
+
+The application exposes metrics using `prometheus-flask-exporter`.
+
+A `PodMonitor` object is included to allow Prometheus to scrape metrics directly
+from the application pods instead of relying only on the Service layer.
+
+Prometheus collects:
+- total request count
+- request latency
+- per-pod health and performance details
+- all metrics exposed from the `/metrics` endpoint on port `5001`
+
+Grafana visualizes these metrics in real time through the Prometheus data source.
+After accessing Grafana (for example using `kubectl port-forward`), you can view
+live dashboards that reflect the application's traffic, behavior, and performance.
+
 
 ## 📑 Chart details
 
