@@ -20,4 +20,5 @@ spec:
         - name: {{ include "app.name" . | default .Release.Name }}
           image: {{ .Values.deployment.imagename }}{{- if .Values.deployment.imagetag }}:{{ .Values.deployment.imagetag }}{{- end }}
           ports:
+            - name: metrics
             - containerPort: {{ .Values.service.targetport }}
