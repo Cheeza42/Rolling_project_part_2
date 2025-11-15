@@ -21,4 +21,4 @@ spec:
           image: {{ .Values.deployment.imagename }}{{- if .Values.deployment.imagetag }}:{{ .Values.deployment.imagetag }}{{- end }}
           ports:
             - name: metrics
-            - containerPort: {{ .Values.service.targetport }}
+              containerPort: {{ .Values.service.targetport }}
