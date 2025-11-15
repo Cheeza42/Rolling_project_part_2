@@ -57,6 +57,26 @@ argocd app sync rolling-project
 
 ---
 
+## Prometheus & Grafana Integration (Production)
+
+The `env-prod` branch contains the production-ready monitoring configuration.
+
+The application exposes metrics via `prometheus-flask-exporter`, and Prometheus
+scrapes them directly from the running production pods through the
+`myapp-prod-podmonitor` resource.
+
+Prometheus stores:
+- request totals
+- processing latency
+- pod status and performance
+- all metrics available under `/metrics` on port `5001`
+
+Grafana presents these metrics visually. When accessing Grafana (for example
+using a port-forward), the production dashboard displays live data from the
+running application, enabling full observability for monitoring and debugging.
+
+---
+
 ## 🧠 Summary
 `env-prod` serves as the **single source of truth** for your production environment.  
-It connects the CI/CD pipeline (Jenkins + Docker Hub) with GitOps delivery (ArgoCD), ensuring every change is versioned, reproducible, and automatically deployed.
+It connects the CI/CD pipeline (Jenkins + Docker Hub) with GitOps delivery (ArgoCD), ensuring every change is versioned, reproducible, automatically deployed, and view the application metrics by using Prometheus or Grafana, in a more comfortable way.
